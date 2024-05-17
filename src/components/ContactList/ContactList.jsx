@@ -5,6 +5,7 @@ import s from "./ContactList.module.css";
 
 export const ContactList = () => {
   const contacts = useSelector(selectFilteredContacts);
+
   if (!contacts.length) {
     return <h2>No contacts found</h2>;
   }

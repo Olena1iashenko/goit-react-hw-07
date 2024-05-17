@@ -15,8 +15,10 @@ export const filtersSlice = createSlice({
 });
 
 export const selectAllContacts = (state) => state.contacts.items;
+export const selectFilter = (state) => state.filters.name;
+
 export const selectFilteredContacts = createSelector(
-  [selectAllContacts, (state) => state.filters.name],
+  [selectAllContacts, selectFilter],
   (contacts, filterName) => {
     if (!filterName) {
       return contacts;

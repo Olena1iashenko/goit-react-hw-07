@@ -1,12 +1,12 @@
-import { createSlice, nanoid } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
+import {
+  addContactThunk,
+  deleteContactThunk,
+  fetchContactsThunk,
+} from "./contactsOps";
 
 const contactsInitialState = {
-  items: [
-    { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-    { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-    { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-    { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-  ],
+  items: [],
   loading: false,
   error: null,
 };
@@ -14,32 +14,38 @@ const contactsInitialState = {
 const contactsSlice = createSlice({
   name: "contacts",
   initialState: contactsInitialState,
-  reducers: {
-    addContact: {
-      reducer(state, action) {
-        state.items.push(action.payload);
-      },
-      prepare(contact) {
-        return {
-          payload: {
-            ...contact,
-            id: nanoid(),
-          },
-        };
-      },
-    },
-    deleteContact: {
-      reducer(state, action) {
-        const index = state.items.findIndex(
-          (contact) => contact.id === action.payload
-        );
-        if (index !== -1) {
-          state.items.splice(index, 1);
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchContactsThunk.fulfilled, (state, { payload }) => {
+        state.items = payload;
+      })
+      .addCase(addContactThunk.fulfilled, (state, { payload }) => {
+        state.items = [...state.items, payload];
+      })
+      .addCase(deleteContactThunk.fulfilled, (state, { payload }) => {
+        state.items = state.items.filter((item) => item.id !== payload.id);
+      })
+      .addMatcher(
+        ({ type }) => type.endsWith("/pending"),
+        (state) => {
+          state.loading = true;
+          state.error = null;
         }
-      },
-    },
+      )
+      .addMatcher(
+        ({ type }) => type.endsWith("/fulfilled"),
+        (state) => {
+          state.loading = false;
+        }
+      )
+      .addMatcher(
+        ({ type }) => type.endsWith("/rejected"),
+        (state, { error }) => {
+          state.loading = false;
+          state.error = error;
+        }
+      );
   },
 });
 
-export const { addContact, deleteContact } = contactsSlice.actions;
 export const contactsReducer = contactsSlice.reducer;
